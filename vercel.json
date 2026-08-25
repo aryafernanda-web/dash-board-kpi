@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/kpi-current", "destination": "/api/kpi-current.js" },
+    { "source": "/api/kpi-archive", "destination": "/api/kpi-archive.js" },
+    { "source": "/api/kpi-snapshot", "destination": "/api/kpi-snapshot.js" },
+    { "source": "/api/target",       "destination": "/api/target.js" }
+  ],
+  "crons": [
+    {
+      "path": "/api/kpi-snapshot",
+      "schedule": "1 17 1 * *"
+    }
+  ]
+}
