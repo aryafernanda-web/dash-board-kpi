@@ -3,117 +3,67 @@
 Dashboard KPI real-time berbasis Notion API, dibangun dengan HTML/CSS/JS dan Vercel Serverless Functions.
 
 ## Fitur
-- 📊 KPI cards: Instalasi & Revenue bulan berjalan vs target
-- 📋 Tabel gaya Excel dengan breakdown produk, kecamatan, status
-- 📈 Grafik tren historis dari data arsip
-- 📸 Snapshot bulanan otomatis ke Notion
-- 🎯 Target KPI bisa diubah kapan saja
-- 🖨️ Export PDF & Print-ready
+- 📊 **KPI cards**: Instalasi & Revenue bulan berjalan vs target
+- 📋 **Tabel gaya Excel**: Live data transaksi instalasi & bundling
+- 📈 **Grafik tren historis**: Akumulasi performa dari data arsip
+- 📸 **Snapshot bulanan**: Simpan arsip langsung ke Notion
+- 🎯 **Target KPI fleksibel**: Atur target langsung dari dashboard
+- 🔍 **Diagnostik Koneksi**: Uji koneksi Notion secara realtime langsung dari tombol dashboard
+- 🖨️ **Export Excel & Print**: Unduh spreadsheet format resmi
 
 ---
 
-## Langkah Setup
+## Langkah Setup & Deploy ke Vercel
 
 ### 1. Share Database ke Integrasi Notion
+Buka masing-masing database di Notion:
+1. **Form Registrasi (1)**
+2. **DATA MY COSTUMER METRONET**
+3. **Arsip Rekapitulasi Historis**
 
-> ⚠️ **WAJIB dilakukan sebelum deploy**
+Di pojok kanan atas database:
+- Klik `...` (titik tiga) ➜ **Connections** ➜ **Add connections** ➜ Pilih integrasi Anda (misal: `maps` atau nama integrasi yang dibuat).
 
-Untuk setiap database (Revenue Bundling, Revenue Bulanan, Target Instalasi):
-1. Buka database di Notion
-2. Klik `...` (titik tiga) → **Connections** → **Add connections**
-3. Pilih integrasi API Anda
+### 2. Setup Environment Variables di Vercel
+Buka dashboard project Anda di **Vercel** ➜ **Settings** ➜ **Environment Variables**, tambahkan:
 
-### 2. Buat Database Arsip di Notion
+| Name | Value | Keterangan |
+| :--- | :--- | :--- |
+| `NOTION_API_TOKEN` | `ntn_...` (Token integrasi Notion Anda) | Token integrasi Notion |
+| `NOTION_DB_REGISTRASI` | `320dcd14e2c88034999ffc33cfe28458` | ID Form Registrasi |
+| `NOTION_DB_CUSTOMER` | `29edcd14e2c880ddb393dc9f54758a18` | ID Data Customer Metronet |
+| `NOTION_DB_ARCHIVE` | `3c7dcd14e2c88022aad6c86491e15f9f` | ID Database Arsip |
+| `DEFAULT_TARGET_INSTALASI` | `20` | Target unit bulanan |
+| `DEFAULT_TARGET_REV_BUNDLING` | `2000000` | Target rev bundling |
+| `DEFAULT_TARGET_REV_BULANAN` | `50000000` | Target rev bulanan |
 
-Buat database baru di Notion dengan kolom:
-| Kolom | Tipe |
-|-------|------|
-| Periode | Title |
-| Total Instalasi | Number |
-| Target Instalasi | Number |
-| Pct Capaian Instalasi | Number |
-| Total Revenue | Number |
-| Target Revenue | Number |
-| Pct Capaian Revenue | Number |
-| Status | Select (Tercapai / Sebagian / Belum Tercapai) |
-| Snapshot Tanggal | Date |
-| Catatan | Text |
+> 💡 *Sistem juga mendukung alias lama seperti `NOTION_DB_TARGET_INSTALASI`, `NOTION_DB_REVENUE_BUNDLING`, dan `NOTION_DB_ARSIP`.*
 
-Setelah dibuat, share ke integrasi dan copy Database ID-nya.
-
-### 3. Setup di GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial KPI Dashboard"
-git remote add origin https://github.com/USERNAME/kpi-dashboard.git
-git push -u origin main
+### 3. Diagnosa Koneksi
+Setelah deploy, Anda dapat mengklik tombol **🔍 Cek Koneksi** di header dashboard atau mengakses endpoint:
 ```
-
-### 4. Deploy ke Vercel
-
-1. Buka https://vercel.com → **New Project**
-2. Import repository dari GitHub
-3. Di **Environment Variables**, isi:
-   - `NOTION_API_TOKEN` = token integrasi Notion
-   - `NOTION_DB_REVENUE_BUNDLING` = `3c5dcd14e2c8806aa1ffdd7960c4bc50`
-   - `NOTION_DB_REVENUE_BULANAN`  = `3c5dcd14e2c88034a9e9c4274accf87d`
-   - `NOTION_DB_TARGET_INSTALASI` = `3c5dcd14e2c880c79b5cda640a86be75`
-   - `NOTION_DB_ARSIP` = ID database arsip yang baru dibuat
-   - `DEFAULT_TARGET_INSTALASI` = `300`
-   - `DEFAULT_TARGET_REVENUE` = `1500000000`
-4. Klik **Deploy**
-
-### 5. Verifikasi Nama Kolom
-
-Buka `/api/kpi-current` di browser. Jika ada error kolom tidak ditemukan,
-sesuaikan nama kolom di **Environment Variables** Vercel:
-- `COL_RB_TANGGAL`, `COL_RB_REVENUE`, dll.
-
----
-
-## Snapshot Otomatis
-
-Dashboard menggunakan **Vercel Cron Jobs** (file `vercel.json`):
-- Cron berjalan setiap tanggal 1, pukul 00:01 WIB (17:01 UTC)
-- Otomatis menyimpan data bulan sebelumnya ke database arsip
-
-> ⚠️ Vercel Cron Jobs membutuhkan **Vercel Pro Plan**.
-> Jika Free Plan: gunakan tombol **"Simpan Snapshot"** manual di dashboard.
-
----
-
-## Penyesuaian Nama Kolom
-
-Jika nama kolom Notion Anda berbeda, ubah di file `.env` atau Vercel Environment Variables:
-
+https://NAMA-PROJECT-ANDA.vercel.app/api/diagnose
 ```
-COL_RB_TANGGAL=Tanggal Aktivasi    # nama kolom tanggal di Revenue Bundling
-COL_RB_REVENUE=Total Revenue       # nama kolom revenue di Revenue Bundling
-COL_RB_STATUS=Status               # nama kolom status (NEW/EXIST)
-COL_RB_PRODUK=Produk               # nama kolom produk
-COL_RB_KECAMATAN=Kecamatan        # nama kolom kecamatan
-```
+Sistem akan memeriksa status token dan ketiga database serta memberikan rekomendasi langsung jika ada yang belum terhubung.
 
 ---
 
 ## Struktur File
-
 ```
 kpi-dashboard/
-├── index.html              # Dashboard utama
+├── index.html          # Dashboard UI & Logic
 ├── css/
-│   └── styles.css          # Desain premium dark mode
+│   └── styles.css      # Styling pendukung
 ├── js/
-│   └── dashboard.js        # Logic frontend + Chart.js
+│   └── dashboard.js    # Script frontend modular
 ├── api/
-│   ├── notion.js           # Notion API client & aggregator
-│   ├── kpi-current.js      # GET KPI bulan berjalan
-│   ├── kpi-archive.js      # GET data arsip historis
-│   ├── kpi-snapshot.js     # POST snapshot ke Notion
-│   └── target.js           # GET/POST target KPI
-├── vercel.json             # Konfigurasi Vercel + Cron
+│   ├── notion.js       # Notion API Client & Aggregator
+│   ├── kpi-current.js  # GET KPI bulan berjalan
+│   ├── kpi-archive.js  # GET data arsip historis
+│   ├── kpi-snapshot.js # POST snapshot ke Notion
+│   ├── target.js       # GET/POST target KPI
+│   └── diagnose.js     # GET diagnostik koneksi Notion
+├── vercel.json         # Konfigurasi rewrite & cron
 ├── package.json
-└── .env.example            # Template environment variables
+└── .env.example
 ```

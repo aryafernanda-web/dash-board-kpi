@@ -1,16 +1,48 @@
 // api/notion.js
 // Integrasi Notion API untuk KPI Dashboard Biznet
 
-const NOTION_API_KEY = process.env.NOTION_API_TOKEN || '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';
+export function cleanDatabaseId(raw) {
+  if (!raw) return '';
+  const str = String(raw).trim();
+  // Ekstrak 32 karakter hex jika berbentuk URL Notion atau UUID dengan strip
+  const cleanStr = str.replace(/-/g, '');
+  const match = cleanStr.match(/([a-f0-9]{32})/i);
+  if (match) return match[1].toLowerCase();
+  return str.replace(/[^a-f0-9]/gi, '').toLowerCase();
+}
+
+export const NOTION_API_KEY = (
+  process.env.NOTION_API_TOKEN ||
+  process.env.NOTION_TOKEN ||
+  process.env.NOTION_KEY ||
+  ''
+).trim();
+
 const NOTION_VERSION = '2022-06-28';
 const BASE_URL = 'https://api.notion.com/v1';
 
-// Database IDs
-export const DB_REGISTRASI_ID = process.env.NOTION_DB_REGISTRASI || '320dcd14e2c88034999ffc33cfe28458'; // Form Registrasi (1)
-export const DB_CUSTOMER_ID   = process.env.NOTION_DB_CUSTOMER   || '29edcd14e2c880ddb393dc9f54758a18'; // DATA MY COSTUMER METRONET
-export const DB_ARCHIVE_ID    = process.env.NOTION_DB_ARCHIVE    || '3c7dcd14e2c88022aad6c86491e15f9f'; // Arsip Rekapitulasi Historis
+// Database IDs dengan dukungan berbagai alias nama Environment Variable
+export const DB_REGISTRASI_ID = cleanDatabaseId(
+  process.env.NOTION_DB_REGISTRASI ||
+  process.env.NOTION_DB_TARGET_INSTALASI ||
+  process.env.NOTION_DB_INSTALASI ||
+  '320dcd14e2c88034999ffc33cfe28458'
+); // Form Registrasi (1)
 
-async function notionRequest(method, endpoint, body = null) {
+export const DB_CUSTOMER_ID = cleanDatabaseId(
+  process.env.NOTION_DB_CUSTOMER ||
+  process.env.NOTION_DB_REVENUE_BUNDLING ||
+  process.env.NOTION_DB_BUNDLING ||
+  '29edcd14e2c880ddb393dc9f54758a18'
+); // DATA MY COSTUMER METRONET
+
+export const DB_ARCHIVE_ID = cleanDatabaseId(
+  process.env.NOTION_DB_ARCHIVE ||
+  process.env.NOTION_DB_ARSIP ||
+  '3c7dcd14e2c88022aad6c86491e15f9f'
+); // Arsip Rekapitulasi Historis
+
+export async function notionRequest(method, endpoint, body = null) {
   const headers = {
     'Authorization': `Bearer ${NOTION_API_KEY}`,
     'Notion-Version': NOTION_VERSION,
@@ -22,12 +54,13 @@ async function notionRequest(method, endpoint, body = null) {
   const res = await fetch(`${BASE_URL}${endpoint}`, opt);
   const json = await res.json();
   if (!res.ok) {
-    throw new Error(json.message || `Notion API Error: ${res.status}`);
+    const errCode = json.code ? `[${json.code}] ` : '';
+    throw new Error(`${errCode}${json.message || `Notion API Error: ${res.status}`}`);
   }
   return json;
 }
 
-async function queryAllPages(databaseId, filter = null, sorts = null) {
+export async function queryAllPages(databaseId, filter = null, sorts = null) {
   let results = [];
   let hasMore = true;
   let cursor = undefined;
@@ -39,16 +72,25 @@ async function queryAllPages(databaseId, filter = null, sorts = null) {
     if (cursor) body.start_cursor = cursor;
 
     const res = await notionRequest('POST', `/databases/${databaseId}/query`, body);
-    results = results.concat(res.results);
+    results = results.concat(res.results || []);
     hasMore = res.has_more;
     cursor = res.next_cursor;
   }
   return results;
 }
 
-function getProp(page, propName) {
-  const p = page.properties[propName];
+export function getProp(page, propName) {
+  if (!page || !page.properties) return null;
+  
+  let p = page.properties[propName];
+  if (!p) {
+    // Cari secara case-insensitive dan trim spasi
+    const target = propName.trim().toLowerCase();
+    const key = Object.keys(page.properties).find(k => k.trim().toLowerCase() === target);
+    if (key) p = page.properties[key];
+  }
   if (!p) return null;
+
   switch (p.type) {
     case 'title':
       return p.title?.map(t => t.plain_text).join('') || '';
@@ -58,6 +100,8 @@ function getProp(page, propName) {
       return p.number;
     case 'select':
       return p.select?.name || '';
+    case 'multi_select':
+      return p.multi_select?.map(s => s.name).join(', ') || '';
     case 'status':
       return p.status?.name || '';
     case 'date':
@@ -66,16 +110,22 @@ function getProp(page, propName) {
       if (p.formula.type === 'number') return p.formula.number;
       if (p.formula.type === 'string') return p.formula.string;
       if (p.formula.type === 'boolean') return p.formula.boolean;
+      if (p.formula.type === 'date') return p.formula.date?.start || '';
       return null;
     case 'rollup':
       if (p.rollup.type === 'number') return p.rollup.number;
+      if (p.rollup.type === 'array') {
+        return p.rollup.array?.map(a => a.number ?? a.title ?? a.rich_text ?? '').join(', ') || null;
+      }
       return null;
+    case 'created_time':
+      return p.created_time || '';
     default:
       return null;
   }
 }
 
-function formatTanggalIndo(dateStr) {
+export function formatTanggalIndo(dateStr) {
   if (!dateStr) return '-';
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
     const [d, m, y] = dateStr.split('/');
@@ -93,7 +143,7 @@ function formatTanggalIndo(dateStr) {
   }
 }
 
-function parseMonthYear(dateStr) {
+export function parseMonthYear(dateStr) {
   if (!dateStr) return null;
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
     const [, m, y] = dateStr.split('/');
@@ -137,14 +187,25 @@ export async function aggregateKPI(year, month, targetRevBundling = 2000000, tar
   const endDate = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
 
   // 1. Query Realisasi Target Instalasi dari Form Registrasi (1)
-  const regFilter = {
-    and: [
-      { property: 'Tanggal Instalasi', date: { on_or_after: startDate } },
-      { property: 'Tanggal Instalasi', date: { before: endDate } }
-    ]
-  };
+  let regPages = [];
+  try {
+    const regFilter = {
+      and: [
+        { property: 'Tanggal Instalasi', date: { on_or_after: startDate } },
+        { property: 'Tanggal Instalasi', date: { before: endDate } }
+      ]
+    };
+    regPages = await queryAllPages(DB_REGISTRASI_ID, regFilter);
+  } catch (filterErr) {
+    console.warn('[notion.js] Query filter Tanggal Instalasi gagal, fallback ke query seluruh data:', filterErr.message);
+    const allPages = await queryAllPages(DB_REGISTRASI_ID);
+    regPages = allPages.filter(page => {
+      const tgl = getProp(page, 'Tanggal Instalasi') || getProp(page, 'Tanggal') || getProp(page, 'Submission time');
+      const my = parseMonthYear(tgl);
+      return my && my.year === year && my.month === month;
+    });
+  }
 
-  const regPages = await queryAllPages(DB_REGISTRASI_ID, regFilter);
   const instalasi = regPages.length;
 
   // 2. Query Data Bundling Existing dari DATA MY COSTUMER METRONET
@@ -163,27 +224,22 @@ export async function aggregateKPI(year, month, targetRevBundling = 2000000, tar
   // A. Baris Target Instalasi (Status: NEW)
   for (const page of regPages) {
     const nama = getProp(page, 'Nama Lengkap') || 'Tanpa Nama';
-    const rawTgl = getProp(page, 'Tanggal Instalasi') || '';
+    const rawTgl = getProp(page, 'Tanggal Instalasi') || getProp(page, 'Submission time') || '';
     const tglIndo = formatTanggalIndo(rawTgl);
-    const prodHome = getProp(page, 'Layanan Home ') || '';
+    const prodHome = getProp(page, 'Layanan Home ') || getProp(page, 'Layanan Home') || '';
     const prodMetro = getProp(page, 'Layanan Metronet') || '';
     const paketRaw = prodHome || prodMetro || 'HOME INTERNET 0D';
     const cleanPaket = standardizePaket(paketRaw);
 
-    // 3. Kategori: HOME jika mengandung home, METRO jika metro
     const kategori = cleanPaket.startsWith('METRO') ? 'METRO' : 'HOME';
-
-    // 4. Sales: Selalu diisi MUHAMAD ARYA FERNANDA
     const sales = 'MUHAMAD ARYA FERNANDA';
 
-    // 6. Tipe Modem untuk target instalasi: diambil murni dari kolom Modem di Form Registrasi (kosongkan jika di Notion kosong)
     const rawModem = (getProp(page, 'Modem') || '').trim();
     let modem = '';
     if (rawModem) {
       modem = rawModem.toUpperCase().includes('RENT') ? 'RENT' : (rawModem.toUpperCase().includes('BUY') ? 'BUY' : rawModem.toUpperCase());
     }
 
-    // 5. Skema Bundling untuk instalasi: ambil dari promo jika ada, jika tidak ada kosongkan
     let skema = '';
     const promo = (getProp(page, 'Promo') || '').toUpperCase();
     const skemaMatch = promo.match(/\d+\+\d+/);
@@ -193,22 +249,19 @@ export async function aggregateKPI(year, month, targetRevBundling = 2000000, tar
       skema = 'MONTHLY F';
     }
 
-    // 7. Revenue untuk target instalasi dikosongkan
-    const revenue = '';
-
     excelRows.push({
       ro: 10,
       bulan: monthName,
-      target: monthName, // backwards compatibility
+      target: monthName,
       status: 'NEW',
       nama: nama.trim(),
       paket: cleanPaket,
       kategori,
       tanggal: tglIndo,
       sales,
-      wilayah: sales, // backwards compatibility
+      wilayah: sales,
       skema,
-      revenue,
+      revenue: '',
       modem,
       source: 'instalasi'
     });
@@ -221,16 +274,15 @@ export async function aggregateKPI(year, month, targetRevBundling = 2000000, tar
     const rawTgl = getProp(page, 'Tanggal') || '';
     const my = parseMonthYear(rawTgl);
 
-    // Filter berdasarkan periode bulan/tahun jika tanggal ada, atau sertakan jika ada bExisting
     const matchesPeriod = my ? (my.year === year && my.month === month) : Boolean(bExisting);
     if (bExisting && matchesPeriod) {
       const nama = getProp(page, 'Nama Pelanggan') || getProp(page, 'Nama Costumer') || 'Tanpa Nama';
       const tglIndo = formatTanggalIndo(rawTgl);
-      const paketRaw = getProp(page, 'Paket') || getProp(page, 'Paket Home') || getProp(page, 'Paket Metro') || 'Home 0D 100Mbps';
+      const paketRaw = getProp(page, 'Paket') || getProp(page, 'Paket Home') || getProp(page, 'Paket Metro') || 'HOME INTERNET 0D';
       const cleanPaket = standardizePaket(paketRaw);
       const kategori = cleanPaket.startsWith('METRO') ? 'METRO' : 'HOME';
       const sales = 'MUHAMAD ARYA FERNANDA';
-      const skema = (bExisting || '').trim();
+      const skema = String(bExisting || '').trim();
       const totalRev = getProp(page, 'Total Revenue') || getProp(page, 'Revenue Bundling Home') || getProp(page, 'Revenue') || 0;
       const revNum = Number(totalRev) || 0;
       bundlingRevenueSum += revNum;
@@ -244,14 +296,14 @@ export async function aggregateKPI(year, month, targetRevBundling = 2000000, tar
       excelRows.push({
         ro: 10,
         bulan: monthName,
-        target: monthName, // backwards compatibility
+        target: monthName,
         status: 'EXISTING',
         nama: nama.trim(),
         paket: cleanPaket,
         kategori,
         tanggal: tglIndo,
         sales,
-        wilayah: sales, // backwards compatibility
+        wilayah: sales,
         skema,
         revenue: revNum,
         modem,
@@ -260,7 +312,7 @@ export async function aggregateKPI(year, month, targetRevBundling = 2000000, tar
     }
   }
 
-  const revenueBundling = bundlingRevenueSum > 0 ? bundlingRevenueSum : 1850000;
+  const revenueBundling = bundlingRevenueSum > 0 ? bundlingRevenueSum : 0;
   const revenueBulanan  = 49075000;
   const totalRevenue = revenueBundling + revenueBulanan;
   const targetRevTotal = targetRevBundling + targetRevBulanan;
@@ -360,7 +412,6 @@ export async function getArchiveData() {
 export async function saveSnapshot(kpiData) {
   const periode = kpiData.periode || `${kpiData.year}-${String(kpiData.month).padStart(2, '0')}`;
 
-  // 1. Cek apakah record periode ini sudah pernah disimpan
   let existingPages = [];
   try {
     existingPages = await queryAllPages(DB_ARCHIVE_ID, {
@@ -416,4 +467,70 @@ export async function saveSnapshot(kpiData) {
       properties
     });
   }
+}
+
+export async function diagnoseNotionConnection() {
+  const result = {
+    tokenValid: false,
+    botInfo: null,
+    databases: {
+      registrasi: { id: DB_REGISTRASI_ID, accessible: false, title: '', error: null, rowCount: 0 },
+      customer:   { id: DB_CUSTOMER_ID, accessible: false, title: '', error: null, rowCount: 0 },
+      archive:    { id: DB_ARCHIVE_ID, accessible: false, title: '', error: null, rowCount: 0 },
+    },
+    recommendations: []
+  };
+
+  // 1. Uji Token
+  try {
+    const me = await notionRequest('GET', '/users/me');
+    result.tokenValid = true;
+    result.botInfo = {
+      name: me.name,
+      id: me.id,
+      workspace: me.bot?.workspace_name || 'Notion Workspace'
+    };
+  } catch (err) {
+    result.tokenValid = false;
+    result.recommendations.push(`Token Notion API bermasalah: ${err.message}. Pastikan NOTION_API_TOKEN sudah diset di Vercel.`);
+    return result;
+  }
+
+  // 2. Uji DB Registrasi
+  try {
+    const db = await notionRequest('GET', `/databases/${DB_REGISTRASI_ID}`);
+    result.databases.registrasi.accessible = true;
+    result.databases.registrasi.title = db.title?.map(t => t.plain_text).join('') || 'Form Registrasi';
+    const sample = await queryAllPages(DB_REGISTRASI_ID);
+    result.databases.registrasi.rowCount = sample.length;
+  } catch (err) {
+    result.databases.registrasi.error = err.message;
+    result.recommendations.push(`Database Form Registrasi (${DB_REGISTRASI_ID}) belum bisa diakses: ${err.message}. Pastikan sudah di-share ke integrasi.`);
+  }
+
+  // 3. Uji DB Customer
+  try {
+    const db = await notionRequest('GET', `/databases/${DB_CUSTOMER_ID}`);
+    result.databases.customer.accessible = true;
+    result.databases.customer.title = db.title?.map(t => t.plain_text).join('') || 'DATA MY CUSTOMER METRONET';
+    const sample = await queryAllPages(DB_CUSTOMER_ID);
+    result.databases.customer.rowCount = sample.length;
+  } catch (err) {
+    result.databases.customer.error = err.message;
+    result.recommendations.push(`Database Customer (${DB_CUSTOMER_ID}) belum bisa diakses: ${err.message}. Pastikan sudah di-share ke integrasi.`);
+  }
+
+  // 4. Uji DB Archive
+  try {
+    const db = await notionRequest('GET', `/databases/${DB_ARCHIVE_ID}`);
+    result.databases.archive.accessible = true;
+    result.databases.archive.title = db.title?.map(t => t.plain_text).join('') || 'Arsip Rekapitulasi Historis';
+    const sample = await queryAllPages(DB_ARCHIVE_ID);
+    result.databases.archive.rowCount = sample.length;
+  } catch (err) {
+    result.databases.archive.error = err.message;
+    result.recommendations.push(`Database Arsip (${DB_ARCHIVE_ID}) belum bisa diakses: ${err.message}. Pastikan sudah di-share ke integrasi.`);
+  }
+
+  return result;
 }

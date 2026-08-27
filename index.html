@@ -202,6 +202,7 @@ tbody tr:hover td{background:#172234}
     <button class="nav-btn" id="btn-next">&#8250;</button>
   </div>
   <div class="hd-r">
+    <button class="btn" id="btn-diag" title="Cek Status Koneksi Notion">🔍 Cek Koneksi</button>
     <button class="btn" id="btn-refresh" title="Refresh">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
@@ -219,6 +220,14 @@ tbody tr:hover td{background:#172234}
 <div class="sb no-print">
   <span id="st"><span class="pulse"></span> Terhubung ke Database Notion — Live Sync</span>
   <span id="st-time"></span>
+</div>
+
+<div id="sync-error-banner" class="no-print" style="display:none;background:rgba(239,68,68,0.14);border-bottom:1px solid rgba(239,68,68,0.35);padding:8px 20px;font-size:12px;color:#fca5a5;align-items:center;justify-content:space-between;gap:12px">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:14px">⚠️</span>
+    <span><strong>Gagal Live Sync ke Notion:</strong> <span id="sync-error-msg">Periksa koneksi atau token API.</span></span>
+  </div>
+  <button class="btn" onclick="openDiag()" style="height:26px;padding:0 10px;font-size:11.5px;background:#ef4444;color:#fff;border-color:#dc2626">🔍 Diagnosa Masalah</button>
 </div>
 
 <main>
@@ -409,6 +418,25 @@ tbody tr:hover td{background:#172234}
   </div>
 </div>
 
+<!-- MODAL: DIAGNOSTIK KONEKSI NOTION -->
+<div class="overlay" id="m-diag" style="display:none" onclick="closeM('m-diag',event)">
+  <div class="modal" style="max-width:560px">
+    <div class="m-hd">
+      <span>🔍 Diagnostik Koneksi Notion API</span>
+      <button class="m-x" onclick="closeM('m-diag')">✕</button>
+    </div>
+    <div class="m-body" id="diag-content" style="max-height:75vh;overflow-y:auto">
+      <div style="text-align:center;padding:24px;color:var(--t2)">
+        <span class="pulse"></span> Memeriksa koneksi ke Notion...
+      </div>
+    </div>
+    <div class="m-ft">
+      <button class="btn" onclick="runDiagnose()">🔄 Uji Ulang</button>
+      <button class="btn btn-primary" onclick="closeM('m-diag')">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -491,6 +519,8 @@ function shiftM(d) {
 async function fetchDashboard() {
   setText('st', 'Memuat data dari Notion…');
   $('st').innerHTML = '<span class="pulse"></span> Mengambil data dari Notion…';
+  const errBanner = $('sync-error-banner');
+  if (errBanner) errBanner.style.display = 'none';
   
   try {
     const [resKpi, resArc] = await Promise.all([
@@ -514,12 +544,30 @@ async function fetchDashboard() {
           S.excelRows = json.data.excelRows;
         }
         render(S.currentData);
-        setText('st', `✓ Live Sync Notion — ${periodStr()}`);
+        setText('st', `✓ Live Sync Notion Aktif — ${periodStr()} (${json.data.dataCount || 0} Data Instalasi)`);
         setText('st-time', new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
+        if (errBanner) errBanner.style.display = 'none';
         return;
+      } else {
+        throw new Error(json.error || 'Respon API Notion tidak valid');
       }
+    } else {
+      let errDetail = `HTTP ${resKpi.status}`;
+      try {
+        const errJson = await resKpi.json();
+        if (errJson.error) errDetail = errJson.error;
+      } catch(e){}
+      throw new Error(errDetail);
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('[Dashboard] Live sync gagal:', err.message);
+    if (errBanner) {
+      errBanner.style.display = 'flex';
+      setText('sync-error-msg', err.message);
+    }
+    setText('st', `⚠️ Live Sync Gagal: ${err.message}`);
+    setText('st-time', new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
+  }
 
   if (S.y === 2026 && S.m < 8) {
     const emptyData = {
@@ -531,12 +579,10 @@ async function fetchDashboard() {
     S.currentData = emptyData;
     S.excelRows = [];
     render(emptyData);
-    setText('st', `✓ Periode ${periodStr()} — Kosong`);
-    setText('st-time', new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
     return;
   }
 
-  // Live August 2026 data matching Notion
+  // August 2026 fallback dataset (13 Target Instalasi [NEW] + 3 Bundling Existing [EXISTING])
   const d = {
     instalasi: 13, targetInstalasi: S.targets.i,
     pctInstalasi: Math.round(13 / S.targets.i * 1000)/10,
@@ -555,7 +601,6 @@ async function fetchDashboard() {
     statusRevTotal: (50025000 >= (S.targets.rb + S.targets.rl) ? 'Tercapai' : 'Sebagian'),
   };
 
-  // August 2026 fallback dataset (13 Target Instalasi [NEW] + 3 Bundling Existing [EXISTING])
   S.excelRows = [
     { ro: 10, bulan: 'AGUSTUS', status: 'NEW', nama: 'ANGGITA EKA PUTRI FEBRIANES', paket: 'HOME INTERNET 0D', kategori: 'HOME', tanggal: '25 Agu 2026', sales: 'MUHAMAD ARYA FERNANDA', skema: '', revenue: '', modem: '' },
     { ro: 10, bulan: 'AGUSTUS', status: 'NEW', nama: 'DIDIK PRASETYA ADI', paket: 'HOME INTERNET 0D', kategori: 'HOME', tanggal: '23 Agu 2026', sales: 'MUHAMAD ARYA FERNANDA', skema: '', revenue: '', modem: '' },
@@ -577,8 +622,6 @@ async function fetchDashboard() {
 
   S.currentData = d;
   render(d);
-  setText('st', `✓ Live Sync Notion — ${periodStr()}`);
-  setText('st-time', new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
 }
 
 function standardizePaket(rawPaket) {
@@ -908,12 +951,119 @@ async function doSnap() {
 
 function closeM(id, e) { if (e && e.target.id !== id) return; $(id).style.display = 'none'; }
 
+async function openDiag() {
+  $('m-diag').style.display = 'flex';
+  runDiagnose();
+}
+
+async function runDiagnose() {
+  const c = $('diag-content');
+  c.innerHTML = `
+    <div style="text-align:center;padding:24px;color:var(--t2)">
+      <span class="pulse"></span> Menguji koneksi ke Notion API dan 3 Database...
+    </div>
+  `;
+
+  try {
+    const res = await fetch('/api/diagnose');
+    const json = await res.json();
+    const d = json.diagnostic;
+
+    if (!d) throw new Error(json.error || 'Gagal menjalankan diagnosa');
+
+    const okIcon = `<span style="color:#34d399;font-weight:700;margin-right:6px">✓</span>`;
+    const errIcon = `<span style="color:#f87171;font-weight:700;margin-right:6px">✕</span>`;
+
+    let html = `<div style="display:flex;flex-direction:column;gap:12px">`;
+
+    // 1. Token Status
+    html += `
+      <div style="background:#0f172a;border:1px solid ${d.tokenValid ? '#1e3a8a' : '#7f1d1d'};border-radius:8px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <strong style="color:#fff">${d.tokenValid ? okIcon : errIcon} Token Notion API</strong>
+          <span class="pill ${d.tokenValid ? 'pill-ok' : 'pill-bad'}">${d.tokenValid ? 'Valid' : 'Invalid / Expired'}</span>
+        </div>
+        ${d.tokenValid ? `<div style="font-size:11.5px;color:var(--t2)">Bot: <strong>${d.botInfo?.name || 'maps'}</strong> &bull; Workspace: <strong>${d.botInfo?.workspace || 'Workspace'}</strong></div>` : `<div style="font-size:11.5px;color:#fca5a5">Token API tidak valid atau belum diatur di Environment Variables Vercel (NOTION_API_TOKEN).</div>`}
+      </div>
+    `;
+
+    // 2. DB Registrasi
+    const dbReg = d.databases?.registrasi;
+    html += `
+      <div style="background:#0f172a;border:1px solid ${dbReg?.accessible ? '#1e3a8a' : '#7f1d1d'};border-radius:8px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <strong style="color:#fff">${dbReg?.accessible ? okIcon : errIcon} DB Form Registrasi (Instalasi)</strong>
+          <span class="pill ${dbReg?.accessible ? 'pill-ok' : 'pill-bad'}">${dbReg?.accessible ? `${dbReg.rowCount} Baris` : 'Gagal Akses'}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--t2)">ID: <code>${dbReg?.id}</code> ${dbReg?.title ? `&bull; Judul: <em>${dbReg.title}</em>` : ''}</div>
+        ${dbReg?.error ? `<div style="font-size:11.5px;color:#fca5a5;margin-top:4px">${dbReg.error}</div>` : ''}
+      </div>
+    `;
+
+    // 3. DB Customer
+    const dbCust = d.databases?.customer;
+    html += `
+      <div style="background:#0f172a;border:1px solid ${dbCust?.accessible ? '#1e3a8a' : '#7f1d1d'};border-radius:8px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <strong style="color:#fff">${dbCust?.accessible ? okIcon : errIcon} DB Customer Metronet (Bundling)</strong>
+          <span class="pill ${dbCust?.accessible ? 'pill-ok' : 'pill-bad'}">${dbCust?.accessible ? `${dbCust.rowCount} Baris` : 'Gagal Akses'}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--t2)">ID: <code>${dbCust?.id}</code> ${dbCust?.title ? `&bull; Judul: <em>${dbCust.title}</em>` : ''}</div>
+        ${dbCust?.error ? `<div style="font-size:11.5px;color:#fca5a5;margin-top:4px">${dbCust.error}</div>` : ''}
+      </div>
+    `;
+
+    // 4. DB Archive
+    const dbArc = d.databases?.archive;
+    html += `
+      <div style="background:#0f172a;border:1px solid ${dbArc?.accessible ? '#1e3a8a' : '#7f1d1d'};border-radius:8px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <strong style="color:#fff">${dbArc?.accessible ? okIcon : errIcon} DB Arsip Rekapitulasi Historis</strong>
+          <span class="pill ${dbArc?.accessible ? 'pill-ok' : 'pill-bad'}">${dbArc?.accessible ? `${dbArc.rowCount} Baris` : 'Gagal Akses'}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--t2)">ID: <code>${dbArc?.id}</code> ${dbArc?.title ? `&bull; Judul: <em>${dbArc.title}</em>` : ''}</div>
+        ${dbArc?.error ? `<div style="font-size:11.5px;color:#fca5a5;margin-top:4px">${dbArc.error}</div>` : ''}
+      </div>
+    `;
+
+    // Recommendations
+    if (d.recommendations && d.recommendations.length > 0) {
+      html += `
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px 14px;margin-top:4px">
+          <strong style="color:#fbbf24;font-size:12px">💡 Rekomendasi Solusi:</strong>
+          <ul style="margin:6px 0 0 18px;font-size:11.5px;color:#fde68a">
+            ${d.recommendations.map(r => `<li>${r}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    } else {
+      html += `
+        <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px 14px;color:#34d399;font-size:12px">
+          ✓ Semua database dan token Notion terhubung sempurna! Live sync siap digunakan.
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    c.innerHTML = html;
+
+  } catch (err) {
+    c.innerHTML = `
+      <div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:14px;color:#fca5a5;font-size:12px">
+        <strong>✕ Gagal menjalankan diagnosa:</strong> ${err.message}
+        <div style="margin-top:8px;color:var(--t2)">Pastikan endpoint <code>/api/diagnose</code> ter-deploy dengan benar di Vercel.</div>
+      </div>
+    `;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadPersist();
   $('lbl-month').textContent = periodStr();
 
   $('btn-prev').addEventListener('click', () => shiftM(-1));
   $('btn-next').addEventListener('click', () => shiftM(+1));
+  $('btn-diag').addEventListener('click', openDiag);
   $('btn-refresh').addEventListener('click', () => { fetchDashboard(); toast('Data diperbarui', 'ok'); });
   $('btn-export').addEventListener('click', exportToExcel);
   $('btn-target').addEventListener('click', openTgt);
@@ -925,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => renderChart(b.dataset.t)));
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { ['m-target', 'm-snap'].forEach(id => $(id).style.display = 'none'); }
+    if (e.key === 'Escape') { ['m-target', 'm-snap', 'm-diag'].forEach(id => $(id).style.display = 'none'); }
   });
 
   fetchDashboard();

@@ -3,7 +3,8 @@
     { "source": "/api/kpi-current", "destination": "/api/kpi-current.js" },
     { "source": "/api/kpi-archive", "destination": "/api/kpi-archive.js" },
     { "source": "/api/kpi-snapshot", "destination": "/api/kpi-snapshot.js" },
-    { "source": "/api/target",       "destination": "/api/target.js" }
+    { "source": "/api/target",       "destination": "/api/target.js" },
+    { "source": "/api/diagnose",     "destination": "/api/diagnose.js" }
   ],
   "crons": [
     {
