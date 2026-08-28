@@ -181,7 +181,7 @@ export function standardizePaket(rawPaket) {
   return 'HOME INTERNET 0D';
 }
 
-export async function aggregateKPI(year, month, targetRevBundling = 2000000, targetRevBulanan = 50000000, targetInstalasi = 20) {
+export async function aggregateKPI(year, month, targetRevBundling = 25000000, targetRevBulanan = 60000000, targetInstalasi = 25) {
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
   const nextMonthDate = new Date(year, month, 1);
   const endDate = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`;

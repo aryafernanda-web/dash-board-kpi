@@ -34,9 +34,11 @@ export default async function handler(req, res) {
       // Default targets dari environment variables
       if (!targets) {
         targets = {
-          instalasi: parseInt(process.env.DEFAULT_TARGET_INSTALASI || 300),
-          revenue:   parseFloat(process.env.DEFAULT_TARGET_REVENUE || 1500000000),
-          updatedAt: null,
+          instalasi:   parseInt(process.env.DEFAULT_TARGET_INSTALASI || 25),
+          revBundling: parseFloat(process.env.DEFAULT_TARGET_REV_BUNDLING || 25000000),
+          revBulanan:  parseFloat(process.env.DEFAULT_TARGET_REV_BULANAN || 60000000),
+          revenue:     parseFloat(process.env.DEFAULT_TARGET_REVENUE || 85000000),
+          updatedAt:   null,
         };
       }
 

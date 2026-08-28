@@ -14,9 +14,9 @@ export default async function handler(req, res) {
     const now   = new Date();
     const year  = parseInt(req.query.year  || now.getFullYear());
     const month = parseInt(req.query.month || (now.getMonth() + 1));
-    const targetRevBundling = parseFloat(req.query.targetRevBundling || 900000000);
-    const targetRevBulanan  = parseFloat(req.query.targetRevBulanan  || 600000000);
-    const targetInstalasi   = parseInt(req.query.targetInstalasi || 300);
+    const targetRevBundling = parseFloat(req.query.targetRevBundling || 25000000);
+    const targetRevBulanan  = parseFloat(req.query.targetRevBulanan  || 60000000);
+    const targetInstalasi   = parseInt(req.query.targetInstalasi || 25);
 
     if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
       return res.status(400).json({ error: 'Parameter year/month tidak valid' });

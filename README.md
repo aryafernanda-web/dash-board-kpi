@@ -33,9 +33,9 @@ Buka dashboard project Anda di **Vercel** ➜ **Settings** ➜ **Environment Var
 | `NOTION_DB_REGISTRASI` | `320dcd14e2c88034999ffc33cfe28458` | ID Form Registrasi |
 | `NOTION_DB_CUSTOMER` | `29edcd14e2c880ddb393dc9f54758a18` | ID Data Customer Metronet |
 | `NOTION_DB_ARCHIVE` | `3c7dcd14e2c88022aad6c86491e15f9f` | ID Database Arsip |
-| `DEFAULT_TARGET_INSTALASI` | `20` | Target unit bulanan |
-| `DEFAULT_TARGET_REV_BUNDLING` | `2000000` | Target rev bundling |
-| `DEFAULT_TARGET_REV_BULANAN` | `50000000` | Target rev bulanan |
+| `DEFAULT_TARGET_INSTALASI` | `25` | Target unit bulanan (25 unit) |
+| `DEFAULT_TARGET_REV_BUNDLING` | `25000000` | Target rev bundling (Rp 25.000.000) |
+| `DEFAULT_TARGET_REV_BULANAN` | `60000000` | Target rev bulanan (Rp 60.000.000) |
 
 > 💡 *Sistem juga mendukung alias lama seperti `NOTION_DB_TARGET_INSTALASI`, `NOTION_DB_REVENUE_BUNDLING`, dan `NOTION_DB_ARSIP`.*
 
