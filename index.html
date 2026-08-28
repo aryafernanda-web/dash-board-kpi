@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>KPI Dashboard — Biznet</title>
-<meta name="description" content="Dashboard KPI monitoring instalasi dan revenue bulanan."/>
+<title>KPI Dashboard — Biznet Live Notion</title>
+<meta name="description" content="Dashboard KPI monitoring instalasi dan revenue bulanan berbasis Notion API."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -25,30 +25,30 @@
   --r:10px;--sh:0 4px 20px rgba(0,0,0,0.25);
 }
 html{font-size:13.5px}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;overflow-x:hidden}
 
 /* Header */
 .hd{
   position:sticky;top:0;z-index:50;
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;height:52px;
-  background:rgba(19,27,42,0.85);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);gap:16px;
+  padding:0 18px;min-height:52px;
+  background:rgba(19,27,42,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;
 }
 .hd-l{display:flex;align-items:center;gap:10px}
 .logo-box{
-  width:32px;height:32px;border-radius:8px;
+  width:30px;height:30px;border-radius:8px;
   background:linear-gradient(135deg, #2563eb, #3b82f6);
   color:#fff;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 8px rgba(37,99,235,0.4);
+  box-shadow:0 2px 8px rgba(37,99,235,0.4);flex-shrink:0;
 }
-.hd-l h1{font-size:15px;font-weight:700;letter-spacing:-0.02em;color:#fff}
-.hd-c{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600}
-#lbl-month{min-width:140px;text-align:center;color:#fff;font-weight:700}
+.hd-l h1{font-size:14.5px;font-weight:700;letter-spacing:-0.02em;color:#fff;white-space:nowrap}
+.hd-c{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
+#lbl-month{min-width:130px;text-align:center;color:#fff;font-weight:700}
 .nav-btn{background:#1e293b;border:1px solid #334155;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:18px;color:var(--t2);display:flex;align-items:center;justify-content:center;transition:all .15s}
 .nav-btn:hover{background:#334155;color:#fff}
-.hd-r{display:flex;align-items:center;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:6px;border:1px solid #334155;background:#1e293b;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;color:#cbd5e1;transition:all .15s}
+.hd-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:6px;border:1px solid #334155;background:#1e293b;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;color:#cbd5e1;transition:all .15s;white-space:nowrap}
 .btn:hover{background:#334155;color:#fff;border-color:#475569}
 .btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
 .btn-primary:hover{background:#2563eb;color:#fff}
@@ -56,32 +56,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .btn-excel:hover{background:#047857;color:#fff}
 
 /* Status bar */
-.sb{display:flex;justify-content:space-between;padding:5px 20px;background:#0d131f;border-bottom:1px solid var(--border);font-size:11.5px;color:var(--t3)}
+.sb{display:flex;justify-content:space-between;align-items:center;padding:5px 18px;background:#0d131f;border-bottom:1px solid var(--border);font-size:11.5px;color:var(--t3);flex-wrap:wrap;gap:8px}
 .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-right:6px;box-shadow:0 0 0 2px rgba(16,185,129,0.3)}
 
-/* Main Layout: 2 Columns Side-by-Side */
-main{max-width:1380px;margin:0 auto;padding:20px}
-.dashboard-grid{
-  display:grid;grid-template-columns:1.05fr 1fr;gap:20px;align-items:start;
+/* Error Banner */
+#sync-error-banner{
+  background:rgba(239,68,68,0.14);border-bottom:1px solid rgba(239,68,68,0.35);
+  padding:8px 18px;font-size:12px;color:#fca5a5;align-items:center;justify-content:space-between;gap:12px;
 }
-.col-left, .col-right{display:flex;flex-direction:column;gap:20px}
 
-.sec-hd{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+/* Main Layout */
+main{max-width:1440px;margin:0 auto;padding:18px}
+.section{margin-bottom:20px}
+.sec-hd{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--t2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .sec-hd::before{content:"";width:4px;height:12px;background:var(--primary);border-radius:2px}
-.sec-hd-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+.sec-hd-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap}
 
-/* Left Side: Chart Card */
-.chart-card{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  padding:18px 20px;box-shadow:var(--sh);
-}
-.chart-box{min-height:310px;position:relative;width:100%}
-.tabs{display:flex;gap:4px;background:#0f172a;border-radius:6px;padding:3px;border:1px solid #1e293b}
-.tab{padding:5px 12px;border:none;border-radius:5px;background:none;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;color:var(--t2);transition:all .15s}
-.tab.active{background:#1e293b;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
-
-/* Right Side: KPI Cards (2x2 Grid) */
-.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* KPI Cards: Top Row (4 Columns on Desktop, 2 on Tablet/Notion, 1 on Mobile) */
+.kpi-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin-bottom:20px}
 .kc{
   background:var(--card);border:1px solid var(--border);border-radius:var(--r);
   padding:14px 16px;position:relative;box-shadow:var(--sh);
@@ -110,13 +102,32 @@ main{max-width:1380px;margin:0 auto;padding:20px}
 .b-bad{background:var(--danger-light);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
 .b-na {background:#1e293b;color:var(--t3)}
 
+/* 2-Column Responsive Grids */
+.dashboard-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;
+}
+.col-main, .col-side{
+  display:flex;flex-direction:column;gap:12px;min-width:0;
+}
+
+/* Chart Card */
+.chart-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;box-shadow:var(--sh);
+}
+.chart-box{min-height:280px;position:relative;width:100%}
+.tabs{display:flex;gap:4px;background:#0f172a;border-radius:6px;padding:3px;border:1px solid #1e293b}
+.tab{padding:4px 10px;border:none;border-radius:5px;background:none;cursor:pointer;font-size:11.5px;font-family:inherit;font-weight:600;color:var(--t2);transition:all .15s}
+.tab.active{background:#1e293b;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+
 /* Tables */
-.tw{border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;overflow-y:hidden;background:var(--card);box-shadow:var(--sh)}
+.tw{border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;overflow-y:auto;background:var(--card);box-shadow:var(--sh);-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
 th{
   background:#0f172a;color:var(--t2);font-size:11px;font-weight:700;
   text-transform:uppercase;letter-spacing:0.05em;padding:9px 10px;
   text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;
+  position:sticky;top:0;z-index:2;
 }
 td{padding:9px 10px;border-bottom:1px solid #1a2333;vertical-align:middle;color:#cbd5e1;white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
@@ -130,19 +141,24 @@ tbody tr:hover td{background:#172234}
 .pill-ok{background:var(--success-light);color:#34d399;border:1px solid rgba(16,185,129,0.3)}
 .pill-mid{background:var(--warning-light);color:#fbbf24;border:1px solid rgba(245,158,11,0.3)}
 .pill-bad{background:var(--danger-light);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
-.empty{text-align:center;color:var(--t3);padding:20px!important}
+.empty{text-align:center;color:var(--t3);padding:24px!important}
 
 /* Table KPI Detail */
 #tbl-kpi th, #tbl-kpi td{padding:10px 12px;font-size:12.5px}
 
-/* Table Arsip Historis (Compact) */
+/* Table Arsip Historis */
 #tbl-arc{font-size:11.5px}
 #tbl-arc th{padding:8px 8px;font-size:10.5px}
 #tbl-arc td{padding:8px 8px;font-size:11.5px}
 
+/* Table Rincian Transaksi */
+#tbl-trx{font-size:12px}
+#tbl-trx th{padding:8px 10px;font-size:11px}
+#tbl-trx td{padding:8px 10px}
+
 /* Modals */
-.overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:#131b2a;border-radius:12px;border:1px solid #334155;width:100%;max-width:440px;box-shadow:0 16px 40px rgba(0,0,0,0.5);animation:up .18s ease}
+.overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#131b2a;border-radius:12px;border:1px solid #334155;width:100%;max-width:460px;box-shadow:0 16px 40px rgba(0,0,0,0.5);animation:up .18s ease}
 @keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .m-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:#fff}
 .m-x{background:none;border:none;cursor:pointer;font-size:16px;color:var(--t3);width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center}
@@ -179,12 +195,22 @@ tbody tr:hover td{background:#172234}
   .row-tot td{background:#e8f0fe!important;color:#000}
   .kpi-grid{grid-template-columns:1fr 1fr}
 }
-@media(max-width:1024px){
-  .dashboard-grid{grid-template-columns:1fr}
+
+/* Responsiveness for Embed & Screens */
+@media(max-width:1180px){
+  .kpi-grid{grid-template-columns:repeat(2, 1fr)}
+  .dashboard-grid{grid-template-columns:1fr;gap:16px}
 }
-@media(max-width:600px){
+@media(max-width:640px){
   .kpi-grid{grid-template-columns:1fr}
+  .hd{padding:8px 12px;gap:8px}
+  .hd-r{gap:4px}
+  .btn{padding:0 8px;font-size:11px;height:28px}
 }
+
+/* Embed Specific Overrides */
+html.is-embedded main{padding:10px 14px}
+html.is-embedded .hd{padding:0 12px;min-height:46px}
 </style>
 </head>
 <body>
@@ -192,7 +218,7 @@ tbody tr:hover td{background:#172234}
 <header class="hd no-print">
   <div class="hd-l">
     <div class="logo-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     </div>
     <h1>KPI Dashboard</h1>
   </div>
@@ -208,7 +234,7 @@ tbody tr:hover td{background:#172234}
       Refresh
     </button>
     <button class="btn btn-excel" id="btn-export" title="Export ke Excel">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Export Excel
     </button>
     <button class="btn" id="btn-target">⚙️ Target</button>
@@ -222,7 +248,7 @@ tbody tr:hover td{background:#172234}
   <span id="st-time"></span>
 </div>
 
-<div id="sync-error-banner" class="no-print" style="display:none;background:rgba(239,68,68,0.14);border-bottom:1px solid rgba(239,68,68,0.35);padding:8px 20px;font-size:12px;color:#fca5a5;align-items:center;justify-content:space-between;gap:12px">
+<div id="sync-error-banner" class="no-print" style="display:none">
   <div style="display:flex;align-items:center;gap:8px">
     <span style="font-size:14px">⚠️</span>
     <span><strong>Gagal Live Sync ke Notion:</strong> <span id="sync-error-msg">Periksa koneksi atau token API.</span></span>
@@ -236,15 +262,101 @@ tbody tr:hover td{background:#172234}
     <span><span id="ph-period"></span> &nbsp;|&nbsp; <span id="ph-date"></span></span>
   </div>
 
-  <!-- ════════════ 2-COLUMN DASHBOARD GRID ════════════ -->
-  <div class="dashboard-grid">
+  <!-- ════════════ 1. TOP: RINGKASAN KPI BULAN BERJALAN (4 CARDS) ════════════ -->
+  <section class="section" style="margin-bottom:20px">
+    <div class="sec-hd-row">
+      <span class="sec-hd" style="margin-bottom:0">Ringkasan KPI Bulan Berjalan</span>
+      <span id="kpi-live-badge" class="badge b-ok" style="display:inline-flex;align-items:center;gap:4px">
+        <span class="pulse" style="margin:0;width:5px;height:5px"></span> Live Sync Notion Aktif
+      </span>
+    </div>
+    <div class="kpi-grid">
+      <!-- Card 1: Realisasi Instalasi -->
+      <div class="kc">
+        <div class="kc-top">
+          <div class="kc-lbl">Realisasi Instalasi</div>
+          <span class="badge b-na" id="b-ins"></span>
+        </div>
+        <div class="kc-val" id="v-ins">—</div>
+        <div class="kc-sub" id="s-ins">Target: —</div>
+        <div class="bar-wrap"><div class="bar blue" id="bar-ins"></div></div>
+        <div class="kc-bot">
+          <span style="font-size:11px;color:var(--t3)">Capaian</span>
+          <span class="kc-pct" id="p-ins">—%</span>
+        </div>
+      </div>
 
-    <!-- ── LEFT COLUMN: TREN HISTORIS & TABEL ARSIP ── -->
-    <div class="col-left">
-      <!-- 1. Tren Performa Historis -->
+      <!-- Card 2: Revenue Bundling -->
+      <div class="kc">
+        <div class="kc-top">
+          <div class="kc-lbl">Revenue Bundling</div>
+          <span class="badge b-na" id="b-rb"></span>
+        </div>
+        <div class="kc-val" id="v-rb">—</div>
+        <div class="kc-sub" id="s-rb">Target: —</div>
+        <div class="bar-wrap"><div class="bar green" id="bar-rb"></div></div>
+        <div class="kc-bot">
+          <span style="font-size:11px;color:var(--t3)">Capaian</span>
+          <span class="kc-pct" id="p-rb">—%</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Revenue Bulanan -->
+      <div class="kc">
+        <div class="kc-top">
+          <div class="kc-lbl">Revenue Bulanan</div>
+          <span class="badge b-na" id="b-rl"></span>
+        </div>
+        <div class="kc-val" id="v-rl">—</div>
+        <div class="kc-sub" id="s-rl">Target: —</div>
+        <div class="bar-wrap"><div class="bar teal" id="bar-rl"></div></div>
+        <div class="kc-bot">
+          <span style="font-size:11px;color:var(--t3)">Capaian</span>
+          <span class="kc-pct" id="p-rl">—%</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Total Revenue -->
+      <div class="kc">
+        <div class="kc-top">
+          <div class="kc-lbl">Total Revenue</div>
+          <span class="badge b-na" id="b-rt"></span>
+        </div>
+        <div class="kc-val" id="v-rt">—</div>
+        <div class="kc-sub" id="s-rt">Target: —</div>
+        <div class="bar-wrap"><div class="bar purple" id="bar-rt"></div></div>
+        <div class="kc-bot">
+          <span style="font-size:11px;color:var(--t3)">Capaian</span>
+          <span class="kc-pct" id="p-rt">—%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 2. MID: TABEL KPI DETAIL & GRAFIK TREN ════════════ -->
+  <div class="dashboard-grid">
+    <!-- Left Column: Tabel KPI Detail -->
+    <div class="col-main">
+      <div class="sec-hd">Tabel KPI Detail</div>
+      <div class="tw">
+        <table id="tbl-kpi">
+          <thead><tr>
+            <th style="min-width:130px">Kategori / Metrik</th>
+            <th class="r" style="min-width:105px">Realisasi</th>
+            <th class="r" style="min-width:105px">Target</th>
+            <th class="r" style="min-width:65px">Capaian</th>
+            <th class="c" style="min-width:75px">Status</th>
+          </tr></thead>
+          <tbody id="tb-kpi"><tr><td colspan="5" class="empty">Memuat data KPI...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: Grafik Tren Historis -->
+    <div class="col-side">
       <div class="chart-card no-print">
         <div class="sec-hd-row">
-          <span class="sec-hd" style="margin-bottom:0">Tren Performa Historis (Akumulasi)</span>
+          <span class="sec-hd" style="margin-bottom:0">Tren Performa Historis</span>
           <div class="tabs">
             <button class="tab active" data-t="instalasi">Instalasi</button>
             <button class="tab" data-t="revenue">Revenue</button>
@@ -255,112 +367,68 @@ tbody tr:hover td{background:#172234}
           <canvas id="chart"></canvas>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- 2. Tabel Arsip Historis -->
-      <div class="section" style="margin-bottom:0">
-        <div class="sec-hd">Arsip Rekapitulasi Historis</div>
-        <div class="tw">
-          <table id="tbl-arc">
-            <thead><tr>
-              <th style="min-width:68px">Periode</th>
-              <th class="r" style="min-width:55px">Instalasi</th>
-              <th class="r" style="min-width:48px">%Ins</th>
-              <th class="r" style="min-width:86px">Rev Bundling</th>
-              <th class="r" style="min-width:48px">%Bund</th>
-              <th class="r" style="min-width:86px">Rev Bulanan</th>
-              <th class="r" style="min-width:48px">%Bul</th>
-              <th class="r" style="min-width:86px">Total Rev</th>
-              <th class="r" style="min-width:48px">%Total</th>
-              <th class="c" style="min-width:72px">Status</th>
-            </tr></thead>
-            <tbody id="tb-arc"><tr><td colspan="10" class="empty">Belum ada arsip historis</td></tr></tbody>
-          </table>
+  <!-- ════════════ 3. BOTTOM: DATA TRANSAKSI LIVE NOTION & ARSIP ════════════ -->
+  <div class="dashboard-grid" style="margin-top:20px">
+    <!-- Left: Rincian Data Transaksi Live -->
+    <div class="col-main">
+      <div class="sec-hd-row">
+        <span class="sec-hd" style="margin-bottom:0">Rincian Data Transaksi Live Notion</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="in-search-trx" placeholder="🔍 Cari nama/paket..." style="padding:4px 8px;font-size:11.5px;background:#0f172a;border:1px solid #334155;border-radius:5px;color:#fff;width:150px"/>
+          <button class="btn btn-excel" onclick="exportToExcel()" style="height:26px;padding:0 8px;font-size:11px">⬇ Excel</button>
         </div>
+      </div>
+      <div class="tw" style="max-height:360px;overflow-y:auto">
+        <table id="tbl-trx">
+          <thead>
+            <tr>
+              <th class="c" style="width:38px">RO</th>
+              <th style="min-width:75px">Bulan</th>
+              <th class="c" style="min-width:65px">Status</th>
+              <th style="min-width:160px">Nama Pelanggan</th>
+              <th style="min-width:130px">Paket</th>
+              <th class="c" style="min-width:60px">Kategori</th>
+              <th style="min-width:85px">Tanggal</th>
+              <th style="min-width:130px">Sales</th>
+              <th style="min-width:70px">Skema</th>
+              <th class="r" style="min-width:85px">Revenue</th>
+              <th class="c" style="min-width:60px">Modem</th>
+            </tr>
+          </thead>
+          <tbody id="tb-trx">
+            <tr><td colspan="11" class="empty">Memuat data transaksi Notion...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- ── RIGHT COLUMN: RINGKASAN KPI CARDS & TABEL DETAIL ── -->
-    <div class="col-right">
-      <!-- 1. Ringkasan KPI Bulan Berjalan (2x2 Cards Grid) -->
-      <div class="section" style="margin-bottom:0">
-        <div class="sec-hd">Ringkasan KPI Bulan Berjalan</div>
-        <div class="kpi-grid">
-          <div class="kc">
-            <div class="kc-top">
-              <div class="kc-lbl">Realisasi Instalasi</div>
-              <span class="badge b-na" id="b-ins"></span>
-            </div>
-            <div class="kc-val" id="v-ins">—</div>
-            <div class="kc-sub" id="s-ins">Target: —</div>
-            <div class="bar-wrap"><div class="bar blue" id="bar-ins"></div></div>
-            <div class="kc-bot">
-              <span style="font-size:11px;color:var(--t3)">Capaian</span>
-              <span class="kc-pct" id="p-ins">—%</span>
-            </div>
-          </div>
-
-          <div class="kc">
-            <div class="kc-top">
-              <div class="kc-lbl">Revenue Bundling</div>
-              <span class="badge b-na" id="b-rb"></span>
-            </div>
-            <div class="kc-val" id="v-rb">—</div>
-            <div class="kc-sub" id="s-rb">Target: —</div>
-            <div class="bar-wrap"><div class="bar green" id="bar-rb"></div></div>
-            <div class="kc-bot">
-              <span style="font-size:11px;color:var(--t3)">Capaian</span>
-              <span class="kc-pct" id="p-rb">—%</span>
-            </div>
-          </div>
-
-          <div class="kc">
-            <div class="kc-top">
-              <div class="kc-lbl">Revenue Bulanan</div>
-              <span class="badge b-na" id="b-rl"></span>
-            </div>
-            <div class="kc-val" id="v-rl">—</div>
-            <div class="kc-sub" id="s-rl">Target: —</div>
-            <div class="bar-wrap"><div class="bar teal" id="bar-rl"></div></div>
-            <div class="kc-bot">
-              <span style="font-size:11px;color:var(--t3)">Capaian</span>
-              <span class="kc-pct" id="p-rl">—%</span>
-            </div>
-          </div>
-
-          <div class="kc">
-            <div class="kc-top">
-              <div class="kc-lbl">Total Revenue</div>
-              <span class="badge b-na" id="b-rt"></span>
-            </div>
-            <div class="kc-val" id="v-rt">—</div>
-            <div class="kc-sub" id="s-rt">Target: —</div>
-            <div class="bar-wrap"><div class="bar purple" id="bar-rt"></div></div>
-            <div class="kc-bot">
-              <span style="font-size:11px;color:var(--t3)">Capaian</span>
-              <span class="kc-pct" id="p-rt">—%</span>
-            </div>
-          </div>
-        </div>
+    <!-- Right: Arsip Rekapitulasi Historis -->
+    <div class="col-side">
+      <div class="sec-hd-row">
+        <span class="sec-hd" style="margin-bottom:0">Arsip Rekapitulasi Historis</span>
+        <button class="btn" onclick="openSnap()" style="height:26px;padding:0 8px;font-size:11px">📸 Simpan Snapshot</button>
       </div>
-
-      <!-- 2. Tabel KPI Detail -->
-      <div class="section" style="margin-bottom:0">
-        <div class="sec-hd">Tabel KPI Detail</div>
-        <div class="tw">
-          <table id="tbl-kpi">
-            <thead><tr>
-              <th style="min-width:130px">Kategori / Metrik</th>
-              <th class="r" style="min-width:105px">Realisasi</th>
-              <th class="r" style="min-width:105px">Target</th>
-              <th class="r" style="min-width:65px">Capaian</th>
-              <th class="c" style="min-width:75px">Status</th>
-            </tr></thead>
-            <tbody id="tb-kpi"><tr><td colspan="5" class="empty">Memuat data...</td></tr></tbody>
-          </table>
-        </div>
+      <div class="tw" style="max-height:360px;overflow-y:auto">
+        <table id="tbl-arc">
+          <thead><tr>
+            <th style="min-width:68px">Periode</th>
+            <th class="r" style="min-width:55px">Instalasi</th>
+            <th class="r" style="min-width:48px">%Ins</th>
+            <th class="r" style="min-width:86px">Rev Bundling</th>
+            <th class="r" style="min-width:48px">%Bund</th>
+            <th class="r" style="min-width:86px">Rev Bulanan</th>
+            <th class="r" style="min-width:48px">%Bul</th>
+            <th class="r" style="min-width:86px">Total Rev</th>
+            <th class="r" style="min-width:48px">%Total</th>
+            <th class="c" style="min-width:72px">Status</th>
+          </tr></thead>
+          <tbody id="tb-arc"><tr><td colspan="10" class="empty">Belum ada arsip historis</td></tr></tbody>
+        </table>
       </div>
     </div>
-
   </div>
 </main>
 
@@ -388,7 +456,7 @@ tbody tr:hover td{background:#172234}
         <input id="in-tgt-rl" type="number" placeholder="50000000" step="1000000"/>
         <div class="prev" id="prev-tgt-rl">Rp 0</div>
       </div>
-      <div class="note">Target disimpan dan langsung diterapkan ke metrik.</div>
+      <div class="note">Target disimpan dan langsung diterapkan ke perhitungan performa.</div>
     </div>
     <div class="m-ft">
       <button class="btn" onclick="closeM('m-target')">Batal</button>
@@ -405,7 +473,7 @@ tbody tr:hover td{background:#172234}
       <button class="m-x" onclick="closeM('m-snap')">✕</button>
     </div>
     <div class="m-body">
-      <p>Simpan data KPI <strong id="snap-lbl"></strong> ke arsip permanen?</p>
+      <p>Simpan data KPI <strong id="snap-lbl"></strong> ke database arsip Notion?</p>
       <div class="fr" style="margin-top:12px">
         <label>Catatan Evaluasi <small>(opsional)</small></label>
         <textarea id="in-cat" rows="2" placeholder="Catatan pencapaian bulan ini..." style="width:100%;padding:8px 10px;border:1px solid #334155;border-radius:6px;font-family:inherit;font-size:13px;outline:none;background:#0f172a;color:#fff"></textarea>
@@ -441,11 +509,17 @@ tbody tr:hover td{background:#172234}
 
 <script>
 'use strict';
+
+// ── Embed Detection ──
+if (window.self !== window.top || new URLSearchParams(window.location.search).has('embed')) {
+  document.documentElement.classList.add('is-embedded');
+}
+
 const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
 const S = {
   y: new Date().getFullYear(),
-  m: new Date().getMonth()+1,
+  m: new Date().getMonth() + 1,
   targets: { i: 20, rb: 2000000, rl: 50000000 },
   currentData: null,
   excelRows: [],
@@ -493,7 +567,8 @@ const setText = (id, v) => { const e = $(id); if (e) e.textContent = v; };
 const setBar = (id, p) => { const e = $(id); if (e) e.style.width = Math.min(p || 0, 100) + '%'; };
 
 function toast(msg, type='', ms=3000) {
-  const e = $('toast'); e.textContent = msg; e.className = 'toast show' + (type ? ' ' + type : '');
+  const e = $('toast'); if (!e) return;
+  e.textContent = msg; e.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(e._t); e._t = setTimeout(() => e.className = 'toast', ms);
 }
 
@@ -582,7 +657,7 @@ async function fetchDashboard() {
     return;
   }
 
-  // August 2026 fallback dataset (13 Target Instalasi [NEW] + 3 Bundling Existing [EXISTING])
+  // Fallback data simulasi jika Notion offline
   const d = {
     instalasi: 13, targetInstalasi: S.targets.i,
     pctInstalasi: Math.round(13 / S.targets.i * 1000)/10,
@@ -650,7 +725,7 @@ function standardizePaket(rawPaket) {
 function render(d) {
   const tgt = S.targets;
 
-  // Cards
+  // 1. KPI Cards
   setText('v-ins', fN(d.instalasi) + ' unit');
   setText('s-ins', `Target: ${fN(tgt.i)} unit`);
   setText('p-ins', fP(d.pctInstalasi));
@@ -680,7 +755,7 @@ function render(d) {
   setText('ph-date', new Date().toLocaleDateString('id-ID',{dateStyle:'long'}));
   setText('pf-date', new Date().toLocaleDateString('id-ID',{dateStyle:'long'}));
 
-  // Main KPI Table (4 Clean Main Rows)
+  // 2. Main KPI Table
   const rows = [
     { l:'INSTALASI (UNIT)', r:fN(d.instalasi) + ' unit', t:fN(tgt.i) + ' unit', p:d.pctInstalasi, s:d.statusInstalasi, grp:true },
     { sep:true },
@@ -698,7 +773,13 @@ function render(d) {
     return `<tr class="${cl}"><td>${r.l}</td><td class="r">${r.r}</td><td class="r">${r.t}</td><td class="r">${ph}</td><td class="c">${sh}</td></tr>`;
   }).join('');
 
+  // 3. Rincian Data Transaksi Live
+  renderTrx(S.excelRows || []);
+
+  // 4. Arsip Historis
   renderArchive();
+
+  // 5. Chart
   renderChart(S.activeTab);
 }
 
@@ -706,6 +787,50 @@ function setBadge(id, status) {
   const e = $(id); if (!e) return;
   e.textContent = slabel(status);
   e.className = 'badge ' + bCls(status);
+}
+
+function renderTrx(rows) {
+  const query = ($('in-search-trx')?.value || '').toLowerCase().trim();
+  const filtered = rows.filter(r => {
+    if (!query) return true;
+    return (r.nama || '').toLowerCase().includes(query) ||
+           (r.paket || '').toLowerCase().includes(query) ||
+           (r.status || '').toLowerCase().includes(query) ||
+           (r.skema || '').toLowerCase().includes(query);
+  });
+
+  const tb = $('tb-trx');
+  if (!tb) return;
+  if (!filtered.length) {
+    tb.innerHTML = `<tr><td colspan="11" class="empty">${query ? 'Tidak ada transaksi yang cocok' : 'Belum ada data transaksi bulan ini'}</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = filtered.map(r => {
+    const isNew = (r.status || '').toUpperCase() === 'NEW';
+    const statusPill = isNew
+      ? `<span class="pill pill-ok">NEW</span>`
+      : `<span class="pill pill-mid">EXIST</span>`;
+    const revStr = (r.revenue !== '' && r.revenue != null && !isNaN(r.revenue))
+      ? fRp(r.revenue, true)
+      : '<span style="color:var(--t3)">—</span>';
+    const modemStr = r.modem ? `<span style="font-size:11px;font-weight:600">${r.modem}</span>` : '<span style="color:var(--t3)">—</span>';
+    const skemaStr = r.skema ? `<span class="badge" style="background:#1e293b;color:#38bdf8">${r.skema}</span>` : '<span style="color:var(--t3)">—</span>';
+
+    return `<tr>
+      <td class="c"><span style="color:var(--t3);font-weight:700">10</span></td>
+      <td><span style="font-weight:600">${r.bulan || 'AGUSTUS'}</span></td>
+      <td class="c">${statusPill}</td>
+      <td><strong style="color:#fff">${r.nama || 'Tanpa Nama'}</strong></td>
+      <td><span style="color:#93c5fd;font-weight:500">${r.paket}</span></td>
+      <td class="c"><span class="badge ${r.kategori === 'METRO' ? 'b-mid' : 'b-ok'}">${r.kategori}</span></td>
+      <td>${r.tanggal || '—'}</td>
+      <td><span style="font-size:11.5px;color:var(--t2)">${r.sales || 'MUHAMAD ARYA FERNANDA'}</span></td>
+      <td>${skemaStr}</td>
+      <td class="r">${revStr}</td>
+      <td class="c">${modemStr}</td>
+    </tr>`;
+  }).join('');
 }
 
 function getCombinedHistory() {
@@ -757,6 +882,7 @@ function renderChart(tab) {
   S.activeTab = tab;
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.t === tab));
   const canvas = $('chart');
+  if (!canvas) return;
   const dataList = getCombinedHistory();
   const labels = dataList.length ? dataList.map(d => d.periode) : [periodStr()];
   let datasets = [];
@@ -795,7 +921,7 @@ function renderChart(tab) {
   });
 }
 
-// ── EXCEL EXPORT FUNCTION (LIVE NOTION DATA) ──
+// ── EXCEL EXPORT FUNCTION ──
 function exportToExcel() {
   if (!S.excelRows || !S.excelRows.length) {
     return toast('Tidak ada data transaksi untuk diexport', 'err');
@@ -804,10 +930,6 @@ function exportToExcel() {
   const monthNamesID = ['JANUARI','FEBRUARI','MARET','APRIL','MEI','JUNI','JULI','AGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DESEMBER'];
   const monthName = monthNamesID[S.m - 1] || 'AGUSTUS';
 
-  // 11 Kolom sesuai spesifikasi user:
-  // 1. Target diganti Bulan (huruf kapital bahasa Indonesia, misal: AGUSTUS)
-  // 2. No diganti RO dan selalu diisi 10
-  // 3. Paket distandarkan sesuai format gambar (HOME INTERNET 0D..3D, METRONET 1D..5D)
   const headers = [
     'RO', 'Bulan', 'Status', 'Nama Pelanggan', 'Paket', 'Kategori',
     'Tanggal', 'Sales', 'Skema Bundling', 'Revenue (Rp)', 'Tipe Modem'
@@ -820,42 +942,29 @@ function exportToExcel() {
     if (bln === 'AUGUST') bln = 'AGUSTUS';
 
     return [
-      10, // RO selalu isi dengan 10
-      bln.toUpperCase(), // Bulan huruf kapital bahasa Indonesia
+      10,
+      bln.toUpperCase(),
       r.status || 'NEW',
       r.nama || '',
-      pkg, // Paket format standar
-      kat, // Kategori (HOME/METRO)
+      pkg,
+      kat,
       r.tanggal || '',
-      'MUHAMAD ARYA FERNANDA', // Sales
+      'MUHAMAD ARYA FERNANDA',
       r.skema || '',
       (r.revenue !== '' && r.revenue != null && !isNaN(r.revenue)) ? Number(r.revenue) : '',
       r.modem || ''
     ];
   });
 
-  // Create worksheet
   const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-
-  // Column width styling
   ws['!cols'] = [
-    { wch: 8 },  // RO
-    { wch: 14 }, // Bulan
-    { wch: 12 }, // Status
-    { wch: 32 }, // Nama Pelanggan
-    { wch: 22 }, // Paket
-    { wch: 10 }, // Kategori
-    { wch: 14 }, // Tanggal
-    { wch: 26 }, // Sales (MUHAMAD ARYA FERNANDA)
-    { wch: 16 }, // Skema Bundling
-    { wch: 16 }, // Revenue (Rp)
-    { wch: 12 }  // Tipe Modem
+    { wch: 8 }, { wch: 14 }, { wch: 12 }, { wch: 32 }, { wch: 22 },
+    { wch: 10 }, { wch: 14 }, { wch: 26 }, { wch: 16 }, { wch: 16 }, { wch: 12 }
   ];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `KPI_${periodStr().replace(' ', '_')}`);
 
-  // Download file
   const filename = `Data_Instalasi_Bundling_${periodStr().replace(' ', '_')}.xlsx`;
   XLSX.writeFile(wb, filename);
 
@@ -917,7 +1026,6 @@ async function doSnap() {
   renderChart(S.activeTab);
   toast(`✓ Menyimpan snapshot ${periodStr()} ke Notion...`, 'ok', 3000);
 
-  // Sync to Notion Arsip Database
   try {
     const res = await fetch('/api/kpi-snapshot', {
       method: 'POST',
@@ -1071,6 +1179,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('in-tgt-rb').addEventListener('input', updateTgtPrev);
   $('in-tgt-rl').addEventListener('input', updateTgtPrev);
+
+  $('in-search-trx')?.addEventListener('input', () => renderTrx(S.excelRows || []));
 
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => renderChart(b.dataset.t)));
 
