@@ -26,7 +26,7 @@ export const DB_REGISTRASI_ID = cleanDatabaseId(
   process.env.NOTION_DB_REGISTRASI ||
   process.env.NOTION_DB_TARGET_INSTALASI ||
   process.env.NOTION_DB_INSTALASI ||
-  '320dcd14e2c88034999ffc33cfe28458'
+  '3c5dcd14e2c880c79b5cda640a86be75'
 ); // Form Registrasi (1)
 
 export const DB_CUSTOMER_ID = cleanDatabaseId(
