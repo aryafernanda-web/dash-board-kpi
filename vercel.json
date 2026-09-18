@@ -4,7 +4,8 @@
     { "source": "/api/kpi-archive", "destination": "/api/kpi-archive.js" },
     { "source": "/api/kpi-snapshot", "destination": "/api/kpi-snapshot.js" },
     { "source": "/api/target",       "destination": "/api/target.js" },
-    { "source": "/api/diagnose",     "destination": "/api/diagnose.js" }
+    { "source": "/api/diagnose",     "destination": "/api/diagnose.js" },
+    { "source": "/api/debug-props",  "destination": "/api/debug-props.js" }
   ],
   "crons": [
     {
